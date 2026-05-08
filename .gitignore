@@ -1,0 +1,26 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# Data — fetched via gdown; see data/README.md
+data/perich_miller_population_2018/
+*.h5
+
+# LaTeX build artifacts
+report/*.aux
+report/*.log
+report/*.out
+report/*.toc
+report/*.synctex.gz
+
+# Editor
+.vscode/
+.idea/
