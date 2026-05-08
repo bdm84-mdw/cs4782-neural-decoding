@@ -12,6 +12,10 @@ We re-implement POYO and four baselines on the Perich–Miller (2018) center-out
 
 We reproduce the **same-animal, new-day transfer R²** comparison (the headline of the paper's transfer experiments): train on Day 1 of monkey "T", adapt on a Day 2 train split, evaluate on a held-out Day 2 split. POYO matches or beats the strongest classical baseline; replacing only the tokenizer with binning collapses POYO to the level of a Wiener filter.
 
+The figure below, taken from the original paper, is the result we set out to reproduce. Our absolute R^2 values are lower than the paper's (most noticeably for the Wiener filter) which we attribute to the much larger multi-animal pre-training corpus used by the authors. The relative ordering of the models' performance, however, matches: POYO > MLP > GRU > Wiener filter.
+
+![original figure](results/original_figure.png)
+
 ## 3. GitHub Contents
 
 ```
@@ -23,11 +27,8 @@ We reproduce the **same-animal, new-day transfer R²** comparison (the headline 
 ├── results/
 │   ├── results_table.csv         # numerical results from the latest notebook run
 │   ├── r2_comparison.png         # bar chart used in the report and poster
-│   └── generate_figure.py        # rebuilds r2_comparison.png from the CSV
 ├── report/
-│   ├── group_topic_2page_report.pdf   # 2-page report (submission-ready)
-│   ├── report.tex                # canonical LaTeX source
-│   └── build_report_pdf.py       # rebuilds the PDF without a LaTeX install (uses fpdf2)
+│   ├── group_topic_2page_report.pdf   # 2-page report
 ├── poster/
 │   └── CS4782 Final Poster.pdf
 ├── LICENSE
@@ -40,7 +41,7 @@ We reproduce the **same-animal, new-day transfer R²** comparison (the headline 
 | :--------------- | :--------------------------------------------------------------------- |
 | Data             | Perich–Miller 2018, monkey T, sessions `t_20130819` and `t_20130821`   |
 | Targets          | 2-D hand kinematics                                                    |
-| Bin size         | 20 ms (binned baselines only)                                          |
+| Bin size         | 10 ms (binned baselines only)                                          |
 | Sequence length  | 1 s                                                                    |
 | Day-1 training   | 100 epochs                                                             |
 | Adaptation       | 40 epochs on Day 2 train split                                         |
@@ -49,17 +50,17 @@ We reproduce the **same-animal, new-day transfer R²** comparison (the headline 
 
 **Models**
 
-- **Wiener / Ridge** — lagged binned spike counts + Ridge regression; adapted by refitting on Day 1 + Day 2.
-- **MLP (binned)** — flatten the `[T, U]` binned tensor and regress; `U` = global unit vocabulary across both days.
-- **GRU (binned)** — clocked recurrent processing of bins.
-- **POYO (event tokens)** — official `torch_brain` POYO with per-spike tokens, learned unit/session embeddings, Perceiver-style cross-attention block.
-- **POYO-binned (independent study)** — same Perceiver backbone, fed binned spike counts as time tokens. Identical depth, latent count, head count; only the tokenizer differs.
+- **Wiener / Ridge**
+- **MLP (binned)**
+- **GRU (binned)**
+- **POYO (event tokens)** — official POYO with per-spike tokens
+- **POYO-binned (independent study)** — Identical architecture as POYO; only the tokenizer differs.
 
 **Modifications from the paper.** Single-monkey, two-session subset rather than the multi-animal mass-pretraining corpus, so absolute numbers are not directly comparable. The POYO-binned ablation is not in the paper.
 
 ## 5. Reproduction Steps
 
-**Compute.** A single GPU with ≥16 GB VRAM is sufficient for the binned baselines and POYO at our scale; the included run used an NVIDIA RTX PRO 6000 Blackwell (102 GB VRAM) on Google Colab.
+**Compute.** The included run used NVIDIA A100 on Google Colab.
 
 **Setup.** Open `code/neural_decoding.ipynb` in a CUDA-capable Python environment (Colab is the easiest path; the notebook installs `pytorch_brain` in its first cell). Then run cells top-to-bottom:
 
@@ -68,18 +69,7 @@ We reproduce the **same-animal, new-day transfer R²** comparison (the headline 
 3. Cells 17, 19, 21, 23 — train and evaluate MLP, GRU, Wiener, POYO-binned, and official POYO sequentially. Each cell prints pre-adaptation and post-adaptation R² on the held-out Day 2 split.
 4. Cell 25 — assembles the final results table.
 
-End-to-end runtime on the Blackwell GPU is roughly 25 minutes; expect ~1–2 hours on a more modest GPU. To rebuild the figure used in the report and poster:
-
-```bash
-python3 results/generate_figure.py
-```
-
-To rebuild the report PDF without a LaTeX install:
-
-```bash
-python3 -m pip install fpdf2
-python3 report/build_report_pdf.py
-```
+End-to-end runtime on A100 is roughly 25 minutes.
 
 ## 6. Results / Insights
 
@@ -111,4 +101,4 @@ POYO's quality on cross-session decoding is best understood as a property of its
 
 ## 9. Acknowledgements
 
-This project was completed for CS 4782 (Cornell University, Spring 2026). We thank the course staff for guidance and the authors of POYO and `torch_brain` for releasing usable open-source code that made this reproduction possible.
+This project was completed for CS 4782 (Cornell University, Spring 2026). We thank the course staff for guidance.
