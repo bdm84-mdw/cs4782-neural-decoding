@@ -1,0 +1,6 @@
+model,pretrain_day2_r2,adapted_day2_r2
+POYO (event tokens),-0.051,0.699369
+MLP (binned),-0.013,0.696750
+GRU (binned),-0.065,0.611572
+POYO-binned,-0.050,0.216634
+Wiener/Ridge,-0.028,0.215228
